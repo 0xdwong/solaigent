@@ -1,14 +1,15 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import agent
 from dotenv import load_dotenv
 load_dotenv()
+from flask import Flask, request, jsonify, Response
+from flask_cors import CORS
+import agent
+
 
 app = Flask(__name__)
 CORS(app)
 
 @app.route('/chat', methods=['POST'])
-def post_example():
+def chat():
     req = request.get_json()  # 获取 POST 请求中的 JSON 数据
     
     userMsg = req['input']['question']
@@ -22,6 +23,17 @@ def post_example():
     }
 
     return jsonify(resp)
+
+
+@app.route('/chat-stream', methods=['POST'])
+def chat_by_stream():
+    req = request.get_json()  # 获取 POST 请求中的 JSON 数据
+    
+    userMsg = req['input']['question']
+
+    chunks = agent.stream(userMsg)
+
+    return Response(chunks)
 
 
 # 运行应用
