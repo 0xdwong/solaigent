@@ -1,10 +1,10 @@
 # solaigent
 An AI agent for Solana
 
-Solaigen 是一个基于 Solana 的 AI 代理，旨在为用户提供多种功能，包括问答、实时联网检索、通过 RPC 请求获取链上数据以及帮助编写智能合约等服务。该项目将结合人工智能和区块链技术，为用户提供高效、智能的解决方案。
+Solaigen is an AI agent based on Solana, aimed at providing users with various functions and services. The project will combine artificial intelligence and blockchain technology to provide users with efficient, intelligent solutions.
 
-主要功能：
-- 问答功能：Solaigen 能够回答用户的问题，提供准确的信息和建议。
-- 实时联网检索：通过与互联网实时连接，Solaigen 可以获取最新的信息和数据。
-- RPC 请求获取链上数据：Solaigen 可以通过 RPC 请求获取 Solana 区块链上的数据，为用户提供准确的链上信息。
-- 帮助编写合约：用户可以向 Solaigen 提出编写智能合约的请求，Agent 将提供帮助和指导，以提高开发效率。
+Main features:
+- Q&A function: Solaigen can answer users' questions and provide accurate information and advice.
+- Real-time online retrieval: By connecting in real-time with the internet, Solaigen can access the latest information and data.
+- RPC requests for on-chain data: Solaigen can use RPC requests to retrieve data on the Solana blockchain, providing users with accurate on-chain information.
+- Help with contract/program writing: Users can request Solaigen to write smart contracts, and the Agent will provide assistance and guidance to improve development efficiency.
