@@ -8,3 +8,5 @@ Main features:
 - Real-time online retrieval: By connecting in real-time with the internet, Solaigen can access the latest information and data.
 - RPC requests for on-chain data: Solaigen can use RPC requests to retrieve data on the Solana blockchain, providing users with accurate on-chain information.
 - Help with contract/program writing: Users can request Solaigen to write smart contracts, and the Agent will provide assistance and guidance to improve development efficiency.
+
+[demo](http://123.88.4.114:8112/)
