@@ -1,0 +1,19 @@
+{
+  "name": "solaigent",
+  "version": "1.0.0",
+  "keywords": [
+    "AI",
+    "ChatGPT",
+    "Solana"
+  ],
+  "private": true,
+  "scripts": {
+    "server": "yarn workspace server start",
+    "build:server": "yarn workspace backend build"
+  },
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  }
+}
