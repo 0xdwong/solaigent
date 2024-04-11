@@ -1,4 +1,3 @@
-
 import { pull } from "langchain/hub";
 import { createOpenAIFunctionsAgent, AgentExecutor } from "langchain/agents";
 import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
@@ -8,7 +7,8 @@ import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { StringOutputParser } from "@langchain/core/output_parsers";
+import { ChatMessageHistory } from "langchain/stores/message/in_memory";
+import { RunnableWithMessageHistory } from "@langchain/core/runnables";
 import { MyLogger } from './utils/mylogger';
 const logger = new MyLogger();
 
@@ -37,77 +37,98 @@ async function getRetrieverTool() {
     const retrieverTool = createRetrieverTool(retriever, {
         name: "blockchain_search",
         description:
-            "Search for information about Solana. For any questions about Solana, you must use this tool!",
+            "Search for information about blockchain. For any questions about blockchain, you must use this tool!",
     });
 
     return retrieverTool;
 }
 
-let agentExecutor;
-async function getExecutor() {
-    if (agentExecutor) return agentExecutor;
+export class MyAgent {
+    private executor: any;
 
-    const tools = [await getRetrieverTool(), getSearchTool()];
+    constructor() { }
 
-    const agentPrompt = await pull<ChatPromptTemplate>(
-        "hwchase17/openai-functions-agent"
-    );
+    async getExecutor(): Promise<any> {
+        if (this.executor) {
+            return this.executor;
+        }
 
-    const agentModel = new ChatOpenAI({
-        modelName: "gpt-3.5-turbo-1106",
-        temperature: 0,
-        openAIApiKey: process.env.OPENAI_API_KEY,
-    });
+        // const tools = [await getRetrieverTool(), getSearchTool()];
+        const tools = [getSearchTool()]; //TODO
 
-    const agent = await createOpenAIFunctionsAgent({
-        llm: agentModel,
-        tools,
-        prompt: agentPrompt,
-        streamRunnable: true
-    });
+        const agentPrompt = await pull<ChatPromptTemplate>(
+            "hwchase17/openai-functions-agent"
+        );//TODO
 
-    agentExecutor = new AgentExecutor({
-        agent,
-        tools,
-        verbose: false,
-    });
+        const agent = await createOpenAIFunctionsAgent({
+            llm: this._getModel(),
+            tools,
+            prompt: agentPrompt,
+            streamRunnable: true
+        });
 
-    return agentExecutor;
-}
+        let agentExecutor = new AgentExecutor({
+            agent,
+            tools,
+            verbose: false,
+        });
 
-export function llm() {
-    const agentModel = new ChatOpenAI({
-        modelName: "gpt-3.5-turbo-1106",
-        temperature: 0,
-        openAIApiKey: process.env.OPENAI_API_KEY,
-    });
-    return agentModel
-}
+        const messageHistory = new ChatMessageHistory();
+        const agentWithChatHistory = new RunnableWithMessageHistory({
+            runnable: agentExecutor,
+            getMessageHistory: (_sessionId) => messageHistory,
+            inputMessagesKey: "input",
+            historyMessagesKey: "chat_history",
+        });
 
-export async function invoke(input: string) {
-    const agentExecutor = await getExecutor();
-
-    let output = '';
-    try {
-        const result = await agentExecutor.invoke({ 'input': input });
-        output = result.output;
-    } catch (err) {
-        logger.error('agent invoke failed', err);
+        this.executor = agentWithChatHistory;
+        return agentWithChatHistory;
     }
-    return output
-}
 
-export async function stream(input: string): Promise<any> {
-    const agentExecutor = await getExecutor();
-
-    const parser = new StringOutputParser();
-
-    let output = '';
-    try {
-        const logStream = await agentExecutor.streamLog({ 'input': input });
-        output = logStream;
-    } catch (err) {
-        logger.error('agent stream failed', err);
+    async invoke(input: string) {
+        let executor = await this.getExecutor();
+        let output = '';
+        try {
+            const result = await executor.invoke({
+                'input': input,
+            },
+                {
+                    configurable: {
+                        sessionId: "dfgerty45y5",
+                    },
+                });
+            output = result.output;
+        } catch (err) {
+            logger.error('agent invoke failed', err);
+        }
+        return output
     }
-    return output
+
+    async stream(input: string): Promise<any> {
+        let executor = await this.getExecutor();
+        let output = '';
+        try {
+            const logStream = executor.streamLog({
+                'input': input,
+            },
+                {
+                    configurable: {
+                        sessionId: "dfgerty45y5",
+                    },
+                });
+            output = logStream;
+        } catch (err) {
+            logger.error('agent stream failed', err);
+        }
+        return output
+    }
+
+    _getModel() {
+        const agentModel = new ChatOpenAI({
+            modelName: "gpt-3.5-turbo-1106",
+            temperature: 0,
+            openAIApiKey: process.env.OPENAI_API_KEY,
+        });
+        return agentModel
+    }
 }

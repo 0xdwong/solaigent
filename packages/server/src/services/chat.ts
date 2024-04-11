@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatReq } from '../dto/chat';
 import { MyLogger } from '../utils/mylogger';
 const logger = new MyLogger();
-import * as agent from '../agent'
+import { MyAgent } from '../agent'
 
 
 @Injectable()
@@ -11,6 +11,7 @@ export class ChatService {
     logger.debug('====chat====', chatReq);
     const usrMsg = chatReq.input.question;
 
+    let agent = new MyAgent();
     const output = await agent.invoke(usrMsg);
 
     return output;
@@ -20,8 +21,9 @@ export class ChatService {
     logger.debug('====chatByStream====', chatReq);
     const usrMsg = chatReq.input.question;
 
+    let agent = new MyAgent();
     const output = await agent.stream(usrMsg);
-    
+
     return output;
   }
 }
