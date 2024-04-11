@@ -4,15 +4,20 @@ import { MyLogger } from '../utils/mylogger';
 const logger = new MyLogger();
 import { MyAgent } from '../agent'
 
-
 @Injectable()
 export class ChatService {
+  private static agent: MyAgent;
+
+  constructor() {
+    ChatService.agent = new MyAgent();
+  }
+
   async chat(chatReq: ChatReq): Promise<any> {
     logger.debug('====chat====', chatReq);
     const usrMsg = chatReq.input.question;
+    const chatId = chatReq.uuid;
 
-    let agent = new MyAgent();
-    const output = await agent.invoke(usrMsg);
+    const output = await ChatService.agent.invoke(usrMsg, chatId);
 
     return output;
   }
@@ -20,9 +25,10 @@ export class ChatService {
   async chatByStream(chatReq: ChatReq): Promise<any> {
     logger.debug('====chatByStream====', chatReq);
     const usrMsg = chatReq.input.question;
+    const chatId = chatReq.uuid;
+    console.log('====chatId====', chatId);
 
-    let agent = new MyAgent();
-    const output = await agent.stream(usrMsg);
+    const output = await ChatService.agent.stream(usrMsg, chatId);
 
     return output;
   }

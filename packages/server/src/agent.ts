@@ -37,7 +37,7 @@ async function getRetrieverTool() {
     const retrieverTool = createRetrieverTool(retriever, {
         name: "blockchain_search",
         description:
-            "Search for information about blockchain. For any questions about blockchain, you must use this tool!",
+            "Search for information about solana. For any questions about solana, you must use this tool!",
     });
 
     return retrieverTool;
@@ -85,7 +85,7 @@ export class MyAgent {
         return agentWithChatHistory;
     }
 
-    async invoke(input: string) {
+    async invoke(input: string, chatId: string): Promise<string> {
         let executor = await this.getExecutor();
         let output = '';
         try {
@@ -94,7 +94,7 @@ export class MyAgent {
             },
                 {
                     configurable: {
-                        sessionId: "dfgerty45y5",
+                        sessionId: chatId,
                     },
                 });
             output = result.output;
@@ -104,7 +104,7 @@ export class MyAgent {
         return output
     }
 
-    async stream(input: string): Promise<any> {
+    async stream(input: string, chatId: string): Promise<any> {
         let executor = await this.getExecutor();
         let output = '';
         try {
@@ -113,7 +113,7 @@ export class MyAgent {
             },
                 {
                     configurable: {
-                        sessionId: "dfgerty45y5",
+                        sessionId: chatId,
                     },
                 });
             output = logStream;
