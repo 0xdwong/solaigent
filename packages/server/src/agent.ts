@@ -47,9 +47,7 @@ let agentExecutor;
 async function getExecutor() {
     if (agentExecutor) return agentExecutor;
 
-    // const tools = [await getRetrieverTool(), getSearchTool()];
-    const tools = [await getRetrieverTool()];
-    // const tools = [getSearchTool()];
+    const tools = [await getRetrieverTool(), getSearchTool()];
 
     const agentPrompt = await pull<ChatPromptTemplate>(
         "hwchase17/openai-functions-agent"
