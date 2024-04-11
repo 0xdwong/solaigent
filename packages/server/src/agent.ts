@@ -9,6 +9,7 @@ import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatMessageHistory } from "langchain/stores/message/in_memory";
 import { RunnableWithMessageHistory } from "@langchain/core/runnables";
+import { v4 as uuidv4 } from 'uuid';
 import { MyLogger } from './utils/mylogger';
 const logger = new MyLogger();
 
@@ -85,7 +86,8 @@ export class MyAgent {
         return agentWithChatHistory;
     }
 
-    async invoke(input: string, chatId: string): Promise<string> {
+    async invoke(input: string, chatId?: string): Promise<string> {
+        if (!chatId) chatId = uuidv4();
         let executor = await this.getExecutor();
         let output = '';
         try {
@@ -104,7 +106,8 @@ export class MyAgent {
         return output
     }
 
-    async stream(input: string, chatId: string): Promise<any> {
+    async stream(input: string, chatId?: string): Promise<any> {
+        if (!chatId) chatId = uuidv4();
         let executor = await this.getExecutor();
         let output = '';
         try {
