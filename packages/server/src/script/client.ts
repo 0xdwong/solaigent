@@ -1,7 +1,9 @@
 
 import axios from 'axios';
 
-const BASE_API_URL = 'http://127.0.0.1:8000';
+const BASE_API_URL = 'http://127.0.0.1:8113';
+// const BASE_API_URL = 'http://192.168.1.10:8113';
+
 
 async function chatByStream() {
     console.time('====chatByStream time====');
