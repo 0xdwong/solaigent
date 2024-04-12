@@ -2,13 +2,11 @@ import { pull } from "langchain/hub";
 import { createOpenAIFunctionsAgent, AgentExecutor } from "langchain/agents";
 import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
 import { createRetrieverTool } from "langchain/tools/retriever";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
+import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatMessageHistory } from "langchain/stores/message/in_memory";
 import { RunnableWithMessageHistory } from "@langchain/core/runnables";
+import { getVectorStroe } from "./vectorstore";
 import { v4 as uuidv4 } from 'uuid';
 import { MyLogger } from './utils/mylogger';
 const logger = new MyLogger();
@@ -20,20 +18,7 @@ function getSearchTool() {
 }
 
 async function getRetrieverTool() {
-    const embeddings = new OpenAIEmbeddings();
-    const splitter = new RecursiveCharacterTextSplitter();
-
-    const loader = new CheerioWebBaseLoader(
-        "https://solana.com/docs"
-    );
-
-    const docs = await loader.load();
-    const splitDocs = await splitter.splitDocuments(docs);
-    const vectorstore = await MemoryVectorStore.fromDocuments(
-        splitDocs,
-        embeddings
-    );
-
+    const vectorstore = await getVectorStroe();
     const retriever = vectorstore.asRetriever();
     const retrieverTool = createRetrieverTool(retriever, {
         name: "blockchain_search",
@@ -54,8 +39,8 @@ export class MyAgent {
             return this.executor;
         }
 
-        // const tools = [await getRetrieverTool(), getSearchTool()];
-        const tools = [getSearchTool()]; //TODO
+        const retriever = await getRetrieverTool()
+        const tools = [getSearchTool(), retriever];
 
         const agentPrompt = await pull<ChatPromptTemplate>(
             "hwchase17/openai-functions-agent"
