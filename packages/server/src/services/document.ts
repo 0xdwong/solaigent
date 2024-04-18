@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { addDoc2Collection, updateDoc } from '../utils/chroma';
+import { addDoc2Collection, updateDoc, removeDocFromCollection } from '../utils/chroma';
 import * as db from '../helpers/db';
 
 
@@ -55,11 +55,18 @@ export class DocumentService {
     return returnData
   }
 
-  async removeDocument(params) {
+  async removeDocument(params): Promise<boolean> {
     const { collection, url } = params;
 
-    const succeed = await db.removeDocument(collection, url);
-    // TODO: chrom remove
+    const idsString = await db.getDocument(collection, url);
+    if (!idsString) return true;
+
+    const ids = idsString.split(',');
+
+    let succeed = await db.removeDocument(collection, url);
+    if (!succeed) return false;
+
+    succeed = await removeDocFromCollection(collection, ids);
 
     return succeed;
   }
@@ -68,7 +75,20 @@ export class DocumentService {
     const { collection, url } = params;
     let succeed = true;
 
-    // TODO:vectore update
+    // check if need to remove old
+    const idsString = await db.getDocument(collection, url);
+    if (idsString) {
+      // remove old if exist 
+      const oldIds = idsString.split(',');
+
+      // remove from db
+      await db.removeDocument(collection, url);
+
+      // TODO: remove from vectore
+      await removeDocFromCollection(collection, oldIds);
+    }
+
+    // vectore update
     const ids = await updateDoc(collection, url);
 
     if (ids.length > 0) {

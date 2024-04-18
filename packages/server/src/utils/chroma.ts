@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import { MyLogger } from './mylogger';
 const logger = new MyLogger();
-import { ChromaClient } from 'chromadb'
+import { ChromaClient, Collection } from 'chromadb'
 import { OpenAIEmbeddingFunction } from 'chromadb'
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
@@ -26,14 +26,14 @@ async function createDocs(url: string) {
     return splitDocs;
 }
 
-export async function addDoc2Collection(collectionName: string, url: string) {
+export async function addDoc2Collection(collectionName: string, url: string): Promise<string[]> {
     let collection = await client.getCollection({
         name: collectionName,
         embeddingFunction: embedder,
     });
 
     const docs = await createDocs(url);
-    const ids = Array.from({ length: docs.length }, () => String(Math.floor(Math.random() * 100000000)));
+    const ids = Array.from({ length: docs.length }, () => String(Math.floor(Math.random() * 100000000)));//TODO
     const metadatas = docs.map(ele => ele.metadata);
     const documents = docs.map(ele => ele.pageContent);
 
@@ -46,12 +46,8 @@ export async function addDoc2Collection(collectionName: string, url: string) {
 }
 
 export async function createCollection(name: string) {
-    try {
-        let collection = await getCollection(name);
-        return collection;
-    } catch (err) {
-        // not exist
-    }
+    let collection = await getCollection(name);
+    if (collection) return collection;
 
     let newCollection = await client.createCollection({
         name: name,
@@ -60,11 +56,17 @@ export async function createCollection(name: string) {
     return newCollection
 }
 
-async function getCollection(name: string) {
-    let collection = await client.getCollection({
-        name: name,
-        embeddingFunction: embedder,
-    });
+async function getCollection(name: string): Promise<Collection> {
+    let collection = null;
+    try {
+        collection = await client.getCollection({
+            name: name,
+            embeddingFunction: embedder,
+        });
+    } catch (err) {
+        // not exist
+    }
+
     return collection;
 }
 
@@ -78,20 +80,25 @@ async function query(name: string, query: string[]) {
     return results;
 }
 
-export async function updateDoc(name: string, url: string) {
-    return []; //TODO
+export async function updateDoc(collectionName: string, url: string) {
+    // add to vectore
+    const ids = await addDoc2Collection(collectionName, url);
+    return ids;
 }
 
-async function main() {
-    const collectionName = 'my_collection4';
-    const url = 'https://www.helius.dev/blog/solana-mev-an-introduction';
+export async function removeDocFromCollection(collectionName: string, ids: string[]): Promise<boolean> {
+    let collection = await getCollection(collectionName);
+    if (!collection) return false;
 
-    // await createCollection(collectionName);
+    try {
+        const results = await collection.delete({
+            ids: ids,
+        });
+        logger.debug('==removeDocFromCollection==', results);
+    } catch (err) {
+        logger.error('====removeDocFromCollection====', err);
+        return false;
+    }
 
-    let r = await addDoc2Collection(collectionName, url);
-
-    const results = await query(collectionName, ["bome"])
-    console.log('==results==', results)
+    return true;
 }
-
-// main()
