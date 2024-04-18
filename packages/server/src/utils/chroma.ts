@@ -5,7 +5,7 @@ const logger = new MyLogger();
 import { ChromaClient, Collection } from 'chromadb'
 import { OpenAIEmbeddingFunction } from 'chromadb'
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
+import { loadDocument as loadWebDocument } from "./webLoader";
 
 
 const embedder = new OpenAIEmbeddingFunction({
@@ -14,15 +14,12 @@ const embedder = new OpenAIEmbeddingFunction({
 
 const client = new ChromaClient();
 
+
 async function createDocs(url: string) {
     const splitter = new RecursiveCharacterTextSplitter();
 
-    const loader = new CheerioWebBaseLoader(url);
-
-    const docs = await loader.load();
-
+    const docs = await loadWebDocument(url);
     const splitDocs = await splitter.splitDocuments(docs);
-    // console.log('===splitDocs===', splitDocs);
     return splitDocs;
 }
 
@@ -112,7 +109,6 @@ export async function getDocument(collectionName: string, ids: string[]): Promis
         const result = await collection.get({
             ids: ids,
         });
-        logger.debug('==getDocument==', result);
         documents = result.documents
     } catch (err) {
         logger.error('====getDocument====', err);

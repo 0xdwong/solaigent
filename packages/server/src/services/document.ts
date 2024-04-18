@@ -54,7 +54,7 @@ export class DocumentService {
     const ids = idsStr.split(',');
 
     let documents = await getDocument(targetCollection, ids);
-    returnData.document = documents.join();
+    returnData.document = documents.join('\n');
 
     return returnData
   }
