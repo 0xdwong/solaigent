@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { addDoc2Collection, updateDoc, removeDocFromCollection } from '../utils/chroma';
+import { getDocument, addDoc2Collection, updateDoc, removeDocFromCollection } from '../utils/chroma';
 import * as db from '../helpers/db';
 
 
@@ -50,7 +50,11 @@ export class DocumentService {
     if (!exists) return returnData;
 
     returnData.collection = targetCollection;
-    returnData.document = await db.getDocument(targetCollection, url);
+    let idsStr = await db.getDocument(targetCollection, url);
+    const ids = idsStr.split(',');
+
+    let documents = await getDocument(targetCollection, ids);
+    returnData.document = documents.join();
 
     return returnData
   }

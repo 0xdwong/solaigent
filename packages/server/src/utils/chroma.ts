@@ -102,3 +102,21 @@ export async function removeDocFromCollection(collectionName: string, ids: strin
 
     return true;
 }
+
+export async function getDocument(collectionName: string, ids: string[]): Promise<string[]> {
+    let collection = await getCollection(collectionName);
+    if (!collection) return [];
+
+    let documents = [];
+    try {
+        const result = await collection.get({
+            ids: ids,
+        });
+        logger.debug('==getDocument==', result);
+        documents = result.documents
+    } catch (err) {
+        logger.error('====getDocument====', err);
+    }
+
+    return documents;
+}
