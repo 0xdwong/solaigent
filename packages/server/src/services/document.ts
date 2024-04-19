@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { getDocument, addDoc2Collection, updateDoc, removeDocFromCollection } from '../utils/chroma';
+import { getDocument, addDocs2Collection, updateDoc, removeDocFromCollection } from '../utils/chroma';
 import * as db from '../helpers/db';
+import { loadDocuments } from '../utils/docLoader';
 
 
 @Injectable()
@@ -13,14 +14,22 @@ export class DocumentService {
   }
 
   async createDocument(params): Promise<string[]> {
-    const { collection, url } = params;
+    const { collection, url, type } = params;
 
     if (!this.isCollectionExist(collection)) return [];
 
-    const ids = await addDoc2Collection(collection, url);
+    const docs = await loadDocuments(url, type);
+
+    const ids = await addDocs2Collection(collection, docs);
 
     if (ids.length > 0) {
-      await db.createDocument(collection, url, ids);
+      if (type === 'github') {
+        for (let doc of docs) {
+          await db.createDocument(collection, url, ids);
+        }
+      } else {
+        await db.createDocument(collection, url, ids);
+      }
     }
 
     return ids;
@@ -76,7 +85,7 @@ export class DocumentService {
   }
 
   async updateDocument(params): Promise<boolean> {
-    const { collection, url } = params;
+    const { collection, url, type } = params;
     let succeed = true;
 
     // check if need to remove old
@@ -93,7 +102,8 @@ export class DocumentService {
     }
 
     // vectore update
-    const ids = await updateDoc(collection, url);
+    const docs = await loadDocuments(url, type);
+    const ids = await updateDoc(collection, docs);
 
     if (ids.length > 0) {
       succeed = await db.updateDocument(collection, url, ids);

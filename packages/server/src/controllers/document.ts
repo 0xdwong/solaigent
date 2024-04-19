@@ -51,7 +51,7 @@ export class DocumentController {
     async create(@Body() request: DocumentReq): Promise<ResponseData> {
         let respData = new ResponseData();
 
-        const { collection, url } = request;
+        const { collection, url, type = 'page' } = request;
 
         if (!collection || !url) {
             respData.code = -2;
@@ -72,7 +72,7 @@ export class DocumentController {
             return respData;
         }
 
-        let ids = await this.documentService.createDocument({ collection, url });
+        let ids = await this.documentService.createDocument({ collection, url, type });
 
         if (ids.length === 0) {
             respData.code = -2;

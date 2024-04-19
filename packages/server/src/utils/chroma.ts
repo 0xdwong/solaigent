@@ -5,7 +5,8 @@ const logger = new MyLogger();
 import { ChromaClient, Collection } from 'chromadb'
 import { OpenAIEmbeddingFunction } from 'chromadb'
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { loadDocument as loadWebDocument } from "./webLoader";
+import { Document } from "@langchain/core/documents";
+import { v4 as uuidv4 } from 'uuid';
 
 
 const embedder = new OpenAIEmbeddingFunction({
@@ -14,31 +15,28 @@ const embedder = new OpenAIEmbeddingFunction({
 
 const client = new ChromaClient();
 
-
-async function createDocs(url: string) {
+export async function addDocs2Collection(collectionName: string, docs: Document[]): Promise<string[]> {
     const splitter = new RecursiveCharacterTextSplitter();
-
-    const docs = await loadWebDocument(url);
     const splitDocs = await splitter.splitDocuments(docs);
-    return splitDocs;
-}
 
-export async function addDoc2Collection(collectionName: string, url: string): Promise<string[]> {
-    let collection = await client.getCollection({
-        name: collectionName,
-        embeddingFunction: embedder,
-    });
+    const ids = Array.from({ length: splitDocs.length }, () => String(uuidv4()));
+    const metadatas = splitDocs.map(ele => ele.metadata);
+    const documents = splitDocs.map(ele => ele.pageContent);
 
-    const docs = await createDocs(url);
-    const ids = Array.from({ length: docs.length }, () => String(Math.floor(Math.random() * 100000000)));//TODO
-    const metadatas = docs.map(ele => ele.metadata);
-    const documents = docs.map(ele => ele.pageContent);
+    try {
+        let collection = await client.getCollection({
+            name: collectionName,
+            embeddingFunction: embedder,
+        });
 
-    await collection.add({
-        ids: ids,
-        metadatas: metadatas,
-        documents: documents,
-    });
+        await collection.add({
+            ids: ids,
+            metadatas: metadatas,
+            documents: documents,
+        });
+    } catch (err) {
+        logger.error('==addDocs2Collection==faield', err);
+    }
     return ids;
 }
 
@@ -77,9 +75,9 @@ async function query(name: string, query: string[]) {
     return results;
 }
 
-export async function updateDoc(collectionName: string, url: string) {
+export async function updateDoc(collectionName: string, docs: Document[]) {
     // add to vectore
-    const ids = await addDoc2Collection(collectionName, url);
+    const ids = await addDocs2Collection(collectionName, docs);
     return ids;
 }
 

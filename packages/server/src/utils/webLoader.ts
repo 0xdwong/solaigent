@@ -1,4 +1,3 @@
-import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { Document } from "@langchain/core/documents";
 import axios from 'axios';
 import { JSDOM } from "jsdom"
@@ -7,12 +6,6 @@ import { Readability } from '@mozilla/readability';
 import { MyLogger } from './mylogger';
 const logger = new MyLogger();
 
-
-export async function loadDocumentByCheerio(url: string): Promise<Document[]> {
-    const loader = new CheerioWebBaseLoader(url);
-    const docs = await loader.load();
-    return docs;
-}
 
 export async function _loadByJinaAI(url: string): Promise<string> {
     let content = '';

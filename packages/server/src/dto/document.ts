@@ -5,4 +5,5 @@ export class ListDocumentReq {
 export class DocumentReq {
   "collection": string;
   "url": string;
+  "type"?: string;
 }
