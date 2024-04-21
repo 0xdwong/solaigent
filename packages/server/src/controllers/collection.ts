@@ -25,7 +25,7 @@ export class CollectionController {
     async create(@Query() query: CollectionReq): Promise<ResponseData> {
         let respData = new ResponseData();
 
-        const { name } = query;
+        const { name } = query; //TODO: body
 
         if (!name) {
             respData.code = -1;
