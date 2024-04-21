@@ -1,82 +1,57 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
-import { ChromaClient } from 'chromadb'
-import { OpenAIEmbeddingFunction } from 'chromadb'
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
+import * as chroma from "../utils/chroma";
+import * as docLoader from "../utils/docLoader";
 
 
-const embedder = new OpenAIEmbeddingFunction({
-    openai_api_key: process.env.OPENAI_API_KEY,
-});
+// async function createCollection(name: string) {
+//     const collection = await client.createCollection({
+//         name: name,
+//         embeddingFunction: embedder,
+//     });
+//     return collection
+// }
 
-const client = new ChromaClient();
+// async function getCollection(name: string) {
+//     let collection = await client.getCollection({
+//         name: name,
+//         embeddingFunction: embedder,
+//     });
+//     return collection;
+// }
 
-async function createDocs(url: string) {
-    const splitter = new RecursiveCharacterTextSplitter();
+// async function query(name: string, query: string[]) {
+//     const collection = await getCollection(name)
 
-    const loader = new CheerioWebBaseLoader(url);
+//     const results = await collection.query({
+//         nResults: 2,
+//         queryTexts: query,
+//     });
+//     return results;
+// }
 
-    const docs = await loader.load();
-
-    const splitDocs = await splitter.splitDocuments(docs);
-    // console.log('===splitDocs===', splitDocs);
-    return splitDocs;
-}
-
-async function addDoctoCollection(collectionName: string, url: string) {
-    let collection = await client.getCollection({
-        name: collectionName,
-        embeddingFunction: embedder,
-    });
-
-    const docs = await createDocs(url);
-    const ids = Array.from({ length: docs.length }, () => String(Math.floor(Math.random() * 100000000)));
-    const metadatas = docs.map(ele => ele.metadata);
-    const documents = docs.map(ele => ele.pageContent);
-
-    await collection.add({
-        ids: ids,
-        metadatas: metadatas,
-        documents: documents,
-    });
-}
-
-async function createCollection(name: string) {
-    const collection = await client.createCollection({
-        name: name,
-        embeddingFunction: embedder,
-    });
-    return collection
-}
-
-async function getCollection(name: string) {
-    let collection = await client.getCollection({
-        name: name,
-        embeddingFunction: embedder,
-    });
-    return collection;
-}
-
-async function query(name: string, query: string[]) {
-    const collection = await getCollection(name)
-
-    const results = await collection.query({
-        nResults: 2,
-        queryTexts: query,
-    });
-    return results;
-}
+// async function getDocsById(name: string, ids: string) {
+//     const collection = await getCollection(name);
+//     const response = await collection.get({
+//         ids: ids.split(','),
+//     });
+//     return response.documents.join('\n');
+// }
 
 async function main() {
-    const collectionName = 'my_collection4';
-    const url = 'https://www.helius.dev/blog/solana-mev-an-introduction';
+    const collectionName = 'test';
+    // const url = 'https://www.helius.dev/blog/solana-mev-an-introduction';
+    const url = 'https://learnblockchain.cn/article/7947';
 
-    await createCollection(collectionName);
 
-    await addDoctoCollection(collectionName, url);
+    await chroma.createCollection(collectionName);
 
-    const results = await query(collectionName, ["bome"])
+    const docs = await docLoader.loadDocuments(url);
+    let results = await chroma.addDocs2Collection(collectionName, docs);
+
+    // const results = await query(collectionName, ["bome"])
+
+    // const results = await getDocsById(collectionName, '122763038,144805634');
     console.log('==results==', results)
 }
 
