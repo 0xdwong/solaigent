@@ -6,7 +6,12 @@ import { MyLogger } from './mylogger';
 const logger = new MyLogger();
 
 export async function loadDocumentByGithub(url: string): Promise<Document[]> {
-    const loader = new GithubRepoLoader(url);
+    const loader = new GithubRepoLoader(url, {
+        branch: "master",
+        accessToken: process.env.GITHUB_ACCESS_TOKEN,
+        recursive: true,
+        unknown: "warn",
+    });
     const docs = await loader.load();
     return docs;
 }

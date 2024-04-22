@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { getDocument, addDocs2Collection, updateDoc, removeDocFromCollection } from '../utils/chroma';
 import * as db from '../helpers/db';
 import { loadDocuments } from '../utils/docLoader';
+import { MyLogger } from '../utils/mylogger';
+const logger = new MyLogger();
 
 
 @Injectable()
@@ -18,21 +20,11 @@ export class DocumentService {
 
     if (!this.isCollectionExist(collection)) return [];
 
-    const docs = await loadDocuments(url, type);
-
-    const ids = await addDocs2Collection(collection, docs);
-
-    if (ids.length > 0) {
-      if (type === 'github') {
-        for (let doc of docs) {
-          await db.createDocument(collection, url, ids);
-        }
-      } else {
-        await db.createDocument(collection, url, ids);
-      }
+    if (type === 'github') {
+      return await this._createGithubDocument(collection, url);
+    } else {
+      return await this._createPageDocument(collection, url);
     }
-
-    return ids;
   }
 
   async getDoculemt(params) {
@@ -123,5 +115,34 @@ export class DocumentService {
     if (!collectionExists) return false;
 
     return await db.hasDocument(collection, docUrl);
+  }
+
+  async _createPageDocument(collection: string, url: string,) {
+    const docs = await loadDocuments(url);
+    const ids = await addDocs2Collection(collection, docs);
+    await db.createDocument(collection, url, ids);
+    return ids
+  }
+
+  async _createGithubDocument(collection: string, repoUrl: string,) {
+    const docs = await loadDocuments(repoUrl, 'github');
+    let ids = [];
+    for (let doc of docs) {
+      const perDocIds = await addDocs2Collection(collection, [doc]);
+
+      const repoUrl = doc.metadata?.repository || '';
+      const branch = doc.metadata?.branch || '';
+      const source = doc.metadata?.source || '';
+      if (!repoUrl || !source) {
+        logger.warn('cannot get github repo metadata info', doc.metadata);
+        continue;
+      }
+
+      let subUrl = `${repoUrl}/blob/${branch}/${source}`;
+
+      await db.createDocument(collection, subUrl, perDocIds);
+      ids = [...ids, ...perDocIds]
+    }
+    return ids
   }
 }
