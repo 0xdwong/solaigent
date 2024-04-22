@@ -7,7 +7,7 @@ const logger = new MyLogger();
 
 export async function loadDocumentByGithub(url: string): Promise<Document[]> {
     const loader = new GithubRepoLoader(url, {
-        // branch: "mian", //TODO:
+        // branch: "main", //TODO:
         accessToken: process.env.GITHUB_ACCESS_TOKEN,
         recursive: true,
         unknown: "warn",
