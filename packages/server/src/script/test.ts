@@ -21,9 +21,10 @@ async function getDocuments() {
     // result = await loadDocument(url);
 
     // const url = 'https://www.helius.dev/blog/solana-mev-an-introduction';
-    const url = 'https://github.com/solana-foundation/developer-content/docs';
+    // const url = 'https://github.com/solana-foundation/developer-content/docs';
+    const url = "https://js.langchain.com/docs/get_started/introduction";
 
-    const docs = await docLoader.loadDocuments(url, 'github');
+    const docs = await docLoader.loadDocuments(url, 'recursive');
 
     console.log(docs);
 }
