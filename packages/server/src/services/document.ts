@@ -131,6 +131,7 @@ export class DocumentService {
   }
 
   async _createGithubDocument(collection: string, repoUrl: string,) {
+    logger.debug('handleing github repo documents begins');
     const docs = await loadDocuments(repoUrl, 'github');
     logger.debug('handleing github repo documents, size', docs.length);
 
@@ -152,6 +153,8 @@ export class DocumentService {
       await db.createDocument(collection, subUrl, perDocIds);
       ids = [...ids, ...perDocIds]
     }
+
+    logger.debug('handleing github repo documents ends');
     return ids
   }
 }
