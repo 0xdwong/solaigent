@@ -21,7 +21,13 @@ export class DocumentService {
     if (!this.isCollectionExist(collection)) return [];
 
     if (type === 'github') {
-      return await this._createGithubDocument(collection, url);
+      // 先响应请求后处理
+      try {
+        this._createGithubDocument(collection, url);
+      } catch (err) {
+        logger.error('====_createGithubDocument====failed', err);
+      }
+      return [''];
     } else {
       return await this._createPageDocument(collection, url);
     }
@@ -126,6 +132,8 @@ export class DocumentService {
 
   async _createGithubDocument(collection: string, repoUrl: string,) {
     const docs = await loadDocuments(repoUrl, 'github');
+    logger.debug('handleing github repo documents, size', docs.length);
+
     let ids = [];
     for (let doc of docs) {
       const perDocIds = await addDocs2Collection(collection, [doc]);
@@ -139,6 +147,7 @@ export class DocumentService {
       }
 
       let subUrl = `${repoUrl}/blob/${branch}/${source}`;
+      logger.debug('handleing github document, url', subUrl);
 
       await db.createDocument(collection, subUrl, perDocIds);
       ids = [...ids, ...perDocIds]
