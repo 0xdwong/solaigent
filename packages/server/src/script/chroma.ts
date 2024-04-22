@@ -41,12 +41,13 @@ import * as docLoader from "../utils/docLoader";
 async function main() {
     const collectionName = 'test';
     // const url = 'https://www.helius.dev/blog/solana-mev-an-introduction';
-    const url = 'https://learnblockchain.cn/article/7947';
-
+    // const url = 'https://learnblockchain.cn/article/7947';
+    // const url = 'https://github.com/solana-foundation/developer-content/docs';
+    const url = 'https://github.com/0xdwong/test/tree/master/translations';
 
     await chroma.createCollection(collectionName);
 
-    const docs = await docLoader.loadDocuments(url);
+    const docs = await docLoader.loadDocuments(url, 'github');
     let results = await chroma.addDocs2Collection(collectionName, docs);
 
     // const results = await query(collectionName, ["bome"])
